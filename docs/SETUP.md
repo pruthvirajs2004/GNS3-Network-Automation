@@ -32,6 +32,20 @@ Cloud node (eth0) in GNS3
         ↕
 Router1 G0/1 (192.168.100.200)
 ```
+```
+Laptop (192.168.100.1)
+         |
+       Cloud1
+         |
+        R1 (192.168.100.200) ← SSH from laptop
+         |
+        R2 (10.0.0.2)        ← OSPF with R1
+         |
+        SW1                   ← VLANs
+       /    \
+     PC1    PC2
+```
+
 
 **Verify VMnet1 IP on your laptop:**
 ```
@@ -47,8 +61,7 @@ Look for `VMware Network Adapter VMnet1` — should show `192.168.100.1`
 2. Add devices: Cloud node, Router1, Switch1, PC1
 3. Configure Cloud node:
    - Right-click → Configure → Ethernet interfaces → Add **eth0** → OK
-4. Connect: `Cloud1 (eth0) → Router1 G0/1`
-5. Connect: `Router1 G0/0 → Switch1 → PC1`
+A5. Connect: `Router1 G0/0 → Switch1 → PC1`
 6. Start all devices (green Play button)
 
 ---
@@ -72,12 +85,49 @@ interface GigabitEthernet0/1
  ip address 192.168.100.200 255.255.255.0
  no shutdown
 interface GigabitEthernet0/0
- ip address 192.168.1.1 255.255.255.0
+ ip address 10.0.0.1 255.255.255.252
  no shutdown
 ip route 0.0.0.0 0.0.0.0 192.168.100.1
+ip route 192.168.1.0 255.255.255.0 10.0.0.2
 end
 write memory
 ```
+— Router2 Initial Config
+
+Open Router1 console and paste:
+```
+enable
+configure terminal
+
+hostname R2
+ip domain-name lab.local
+
+! SSH setup
+crypto key generate rsa modulus 1024
+ip ssh version 2
+username admin privilege 15 secret cisco
+
+line vty 0 4
+ login local
+ transport input ssh
+
+! Interface toward R1
+interface GigabitEthernet0/0
+ ip address 10.0.0.2 255.255.255.252
+ no shutdown
+
+! LAN interface toward switch/PCs
+interface GigabitEthernet0/1
+ ip address 192.168.1.1 255.255.255.0
+ no shutdown
+
+! Default route toward R1
+ip route 0.0.0.0 0.0.0.0 10.0.0.1
+
+end
+write memory
+```
+
 
 ---
 
