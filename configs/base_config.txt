@@ -1,0 +1,63 @@
+! ============================================================
+! Base Router Configuration Template
+! Author: Pruthvi Raj S
+! Project: GNS3 Network Automation
+! ============================================================
+
+hostname {HOSTNAME}
+
+! Security
+no ip domain-lookup
+service password-encryption
+enable secret cisco
+
+! SSH Setup
+ip domain-name lab.local
+crypto key generate rsa modulus 1024
+ip ssh version 2
+
+! Local user
+username admin privilege 15 secret cisco
+
+! VTY Lines (SSH only)
+line vty 0 4
+ login local
+ transport input ssh
+ exec-timeout 10 0
+
+! Console
+line con 0
+ logging synchronous
+ exec-timeout 10 0
+
+! Disable CDP on edge interfaces
+! no cdp enable
+
+! Logging
+logging buffered 4096
+no logging console
+
+! Interfaces (customize per device)
+interface GigabitEthernet0/0
+ description LAN_Interface
+ ip address {LAN_IP} 255.255.255.0
+ no shutdown
+
+interface GigabitEthernet0/1
+ description Management_Interface
+ ip address {MGMT_IP} 255.255.255.0
+ no shutdown
+
+! Default route
+ip route 0.0.0.0 0.0.0.0 {GATEWAY}
+
+! OSPF
+router ospf 1
+ router-id {ROUTER_ID}
+ network {LAN_NETWORK} 0.0.0.255 area 0
+ network {MGMT_NETWORK} 0.0.0.255 area 0
+ passive-interface GigabitEthernet0/0
+
+end
+
+write memory

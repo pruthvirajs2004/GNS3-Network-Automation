@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+env/
+
+# Backups and reports (auto-generated)
+backups/*.txt
+reports/*.html
+
+# Topology screenshots (add your own)
+topology/*.png
+
+# VS Code
+.vscode/
+
+# Mac
+.DS_Store
