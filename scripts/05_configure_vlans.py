@@ -1,5 +1,5 @@
 # 05_configure_vlans.py
-# Automates VLAN creation and port assignment on switches
+# Automates VLAN creation and port assignment on SW1
 # Author: Pruthvi Raj S
 
 from netmiko import ConnectHandler
@@ -12,20 +12,15 @@ from devices import SWITCHES
 
 init(autoreset=True)
 
-# VLAN definitions
 VLANS = [
     {"id": 10, "name": "MANAGEMENT"},
     {"id": 20, "name": "USERS"},
-    {"id": 30, "name": "SERVERS"},
-    {"id": 99, "name": "NATIVE"},
 ]
 
-# Port assignments per switch
 PORT_CONFIG = {
     "SW1": {
-        "GigabitEthernet0/1": {"mode": "access", "vlan": 20},
-        "GigabitEthernet0/2": {"mode": "access", "vlan": 20},
-        "GigabitEthernet0/3": {"mode": "access", "vlan": 30},
+        "GigabitEthernet0/2": {"mode": "access", "vlan": 10},
+        "GigabitEthernet0/3": {"mode": "access", "vlan": 20},
     }
 }
 
@@ -41,7 +36,6 @@ def configure_vlans():
         try:
             conn = ConnectHandler(**{k: v for k, v in device.items() if k != "name" and k != "role"})
 
-            # Create VLANs
             vlan_commands = []
             for vlan in VLANS:
                 vlan_commands.append(f"vlan {vlan['id']}")
@@ -49,7 +43,6 @@ def configure_vlans():
             conn.send_config_set(vlan_commands)
             print(Fore.GREEN + f"  [+] VLANs created: {[v['id'] for v in VLANS]}")
 
-            # Assign ports
             ports = PORT_CONFIG.get(name, {})
             for port, config in ports.items():
                 port_commands = [
@@ -62,8 +55,6 @@ def configure_vlans():
                 print(Fore.GREEN + f"  [+] {port} → VLAN {config['vlan']}")
 
             conn.send_command("write memory")
-
-            # Verify
             vlan_output = conn.send_command("show vlan brief")
             conn.disconnect()
 

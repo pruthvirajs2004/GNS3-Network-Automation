@@ -1,5 +1,5 @@
 # 03_configure_hostname.py
-# Change hostnames on GNS3 devices via Python
+# Change hostnames on all GNS3 devices via Python
 # Author: Pruthvi Raj S
 
 from netmiko import ConnectHandler
@@ -12,9 +12,9 @@ from devices import ALL_DEVICES
 
 init(autoreset=True)
 
-# Define new hostnames for each device
 HOSTNAME_MAP = {
     "R1":  "R1-CORE",
+    "R2":  "R2-OSPF",
     "SW1": "SW1-ACCESS",
 }
 

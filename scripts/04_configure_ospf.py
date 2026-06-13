@@ -1,5 +1,5 @@
 # 04_configure_ospf.py
-# Pushes OSPF Area 0 configuration to all routers
+# Pushes OSPF Area 0 configuration to R1 and R2
 # Author: Pruthvi Raj S
 
 from netmiko import ConnectHandler
@@ -12,14 +12,20 @@ from devices import ROUTERS
 
 init(autoreset=True)
 
-# OSPF config per router
 OSPF_CONFIG = {
     "R1": [
         "router ospf 1",
         "router-id 1.1.1.1",
         "network 192.168.100.0 0.0.0.255 area 0",
-        "network 192.168.1.0 0.0.0.255 area 0",
-        "passive-interface GigabitEthernet0/0",
+        "network 10.0.0.0 0.0.0.255 area 0",
+        "passive-interface GigabitEthernet0/1",
+    ],
+    "R2": [
+        "router ospf 1",
+        "router-id 2.2.2.2",
+        "network 10.0.0.0 0.0.0.255 area 0",
+        "network 192.168.10.0 0.0.0.255 area 0",
+        "network 192.168.20.0 0.0.0.255 area 0",
     ],
 }
 
@@ -42,15 +48,13 @@ def configure_ospf():
             conn = ConnectHandler(**{k: v for k, v in device.items() if k != "name" and k != "role"})
             conn.send_config_set(commands)
             conn.send_command("write memory")
-
-            # Verify OSPF
             ospf_output = conn.send_command("show ip ospf")
             conn.disconnect()
 
             if "Routing Process" in ospf_output:
                 print(Fore.GREEN + "SUCCESS — OSPF process running")
             else:
-                print(Fore.YELLOW + "WARNING — OSPF may not be active, check manually")
+                print(Fore.YELLOW + "WARNING — Check OSPF manually")
 
         except Exception as e:
             print(Fore.RED + f"FAILED — {str(e)}")
@@ -66,7 +70,7 @@ def configure_ospf():
             neighbors = conn.send_command("show ip ospf neighbor")
             conn.disconnect()
             print(f"\n--- {name} OSPF Neighbors ---")
-            print(neighbors if neighbors.strip() else "  No neighbors found yet (normal if single router)")
+            print(neighbors if neighbors.strip() else "  No neighbors yet")
         except Exception as e:
             print(Fore.RED + f"[!] Could not verify {name}: {str(e)}")
 
